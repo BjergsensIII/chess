@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "SnakeGame",
+            "request": "launch",
+            "mainClass": "snake.SnakeGame",
+            "projectName": "chess_9cb917e5"
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "com.example.chess.Main",
