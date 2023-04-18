@@ -23,7 +23,7 @@ import java.util.Random;
 
 public class SnakeGame extends Application {
 
-    private static final int WIDTH = 600;
+    private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
     private static final int CELL_SIZE = 20;
 
@@ -115,6 +115,7 @@ public class SnakeGame extends Application {
                 restartButton.setVisible(true);
                 scoreLabel.setVisible(false);
                 canvas.setVisible(false);
+                hud.setDisable(false);
                 hud.setVisible(true);
             }
     
@@ -125,11 +126,16 @@ public class SnakeGame extends Application {
     
         drawSnake();
         drawFood();
+    
+        hud.setVisible(false);
+        hud.setDisable(true);
     }
 
     private void restartGame() {
         timeline.stop();
         startGame();
+        canvas.setVisible(true);
+        hud.setVisible(false);
     }
 
     private void moveSnake() {
