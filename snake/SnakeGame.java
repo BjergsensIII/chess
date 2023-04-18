@@ -6,10 +6,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -32,38 +36,43 @@ public class SnakeGame extends Application {
     private boolean gameOver;
     private int score;
 
+    private VBox hud;
+    private Label title;
+    private Label scoreLabel;
+    private Button startButton;
+    private Button restartButton;
+
     @Override
     public void start(Stage primaryStage) {
         canvas = new Canvas(WIDTH, HEIGHT);
         gc = canvas.getGraphicsContext2D();
         BorderPane root = new BorderPane(canvas);
-        Label scoreLabel = new Label("Score: 0");
-        scoreLabel.setAlignment(Pos.CENTER);
-        root.setTop(scoreLabel);
+
+        // HUD
+        hud = new VBox(10);
+        hud.setAlignment(Pos.CENTER);
+        title = new Label("Snake Game");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+        scoreLabel = new Label("Score: 0");
+        scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        startButton = new Button("Start");
+        startButton.setOnAction(event -> {
+            startGame();
+            hud.setVisible(false);
+            canvas.setVisible(true);
+        });
+        restartButton = new Button("Restart");
+        restartButton.setOnAction(event -> {
+            restartGame();
+            hud.setVisible(true);
+            canvas.setVisible(false);
+        });
+        restartButton.setVisible(false);
+        hud.getChildren().addAll(title, startButton, restartButton, scoreLabel);
+        root.setCenter(hud);
 
         snake = new ArrayList<>();
-        snake.add(new Cell(WIDTH / 2, HEIGHT / 2));
         direction = Direction.RIGHT;
-        spawnFood();
-
-        timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
-            gc.setFill(Color.WHITE);
-            gc.fillRect(0, 0, WIDTH, HEIGHT);
-
-            moveSnake();
-            drawSnake();
-            drawFood();
-
-            if (gameOver) {
-                timeline.stop();
-                gc.setFill(Color.BLACK);
-                gc.fillText("Game Over", WIDTH / 2 - 50, HEIGHT / 2);
-            }
-
-            scoreLabel.setText("Score: " + score);
-        }));
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.play();
 
         Scene scene = new Scene(root);
         scene.setOnKeyPressed(event -> {
@@ -81,6 +90,46 @@ public class SnakeGame extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Snake Game");
         primaryStage.show();
+    }
+
+    private void startGame() {
+        snake.clear();
+        snake.add(new Cell(WIDTH / 2, HEIGHT / 2));
+        direction = Direction.RIGHT;
+        spawnFood();
+        score = 0;
+        gameOver = false;
+    
+        timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+            gc.setFill(Color.WHITE);
+            gc.fillRect(0, 0, WIDTH, HEIGHT);
+    
+            moveSnake();
+            drawSnake();
+            drawFood();
+    
+            if (gameOver) {
+                timeline.stop();
+                gc.setFill(Color.BLACK);
+                gc.fillText("Game Over", WIDTH / 2 - 50, HEIGHT / 2);
+                restartButton.setVisible(true);
+                scoreLabel.setVisible(false);
+                canvas.setVisible(false);
+                hud.setVisible(true);
+            }
+    
+            scoreLabel.setText("Score: " + score);
+        }));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
+    
+        drawSnake();
+        drawFood();
+    }
+
+    private void restartGame() {
+        timeline.stop();
+        startGame();
     }
 
     private void moveSnake() {
@@ -121,63 +170,64 @@ public class SnakeGame extends Application {
         int x = random.nextInt(WIDTH / CELL_SIZE) * CELL_SIZE;
         int y = random.nextInt(HEIGHT / CELL_SIZE) * CELL_SIZE;
         food = new Cell(x, y);
-    }
-
-    private void drawFood() {
-        gc.setFill(Color.RED);
-        gc.fillRect(food.getX(), food.getY(), CELL_SIZE, CELL_SIZE);
-    }
-
-    private enum Direction {
-        UP(0, -CELL_SIZE),
-        DOWN(0, CELL_SIZE),
-        LEFT(-CELL_SIZE, 0),
-        RIGHT(CELL_SIZE, 0);
-
-        private final int x;
-        private final int y;
-
-        Direction(int x, int y) {
-            this.x = x;
-            this.y = y;
         }
 
-        public int getX() {
-            return x;
+        private void drawFood() {
+            gc.setFill(Color.RED);
+            gc.fillRect(food.getX(), food.getY(), CELL_SIZE, CELL_SIZE);
         }
-
-        public int getY() {
-            return y;
+        
+        private enum Direction {
+            UP(0, -CELL_SIZE),
+            DOWN(0, CELL_SIZE),
+            LEFT(-CELL_SIZE, 0),
+            RIGHT(CELL_SIZE, 0);
+        
+            private final int x;
+            private final int y;
+        
+            Direction(int x, int y) {
+                this.x = x;
+                this.y = y;
+            }
+        
+            public int getX() {
+                return x;
+            }
+        
+            public int getY() {
+                return y;
+            }
         }
-    }
-
-    private static class Cell {
-        private final int x;
-        private final int y;
-
-        public Cell(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public int getX() {
-            return x;
-        }
-
-        public int getY() {
-            return y;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof Cell) {
-                Cell other = (Cell) obj;
-                return this.x == other.x && this.y == other.y;
+        
+        private static class Cell {
+            private final int x;
+            private final int y;
+        
+            public Cell(int x, int y) {
+                this.x = x;
+                this.y = y;
+            }
+        
+            public int getX() {
+                return x;
+            }
+        
+            public int getY() {
+                return y;
+            }
+        
+            @Override
+            public boolean equals(Object obj) {
+                if (obj instanceof Cell) {
+                    Cell other = (Cell) obj;
+                    return this.x == other.x && this.y == other.y;
                 }
                 return false;
-                }
-                }
-                public static void main(String[] args) {
-                    launch(args);
-                }
             }
+        }
+        
+        public static void main(String[] args) {
+            launch(args);
+        }
+}        
